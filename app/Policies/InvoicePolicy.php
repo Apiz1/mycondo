@@ -18,4 +18,10 @@ class InvoicePolicy
         return $user->role === UserRole::Resident
             && $user->activeUnitIds()->contains($invoice->unit_id);
     }
+
+    public function pay(User $user, Invoice $invoice): bool
+    {
+        return $user->role === UserRole::Resident
+            && $user->activeUnitIds()->contains($invoice->unit_id);
+    }
 }

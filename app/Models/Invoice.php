@@ -23,4 +23,6 @@ class Invoice extends Model
     {
         return $this->belongsTo(Unit::class);
     }
+
+    public function payments() { return $this->hasMany(Payment::class); }
 }
