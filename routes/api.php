@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\UnitController;
 
 
 Route::prefix('v1')->group(function () {
@@ -12,5 +13,6 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', fn (Request $request) => $request->user());
         Route::get('/committee-only', fn () => ['ok' => true])->middleware('role:committee');
+        Route::apiResource('units', UnitController::class)->middleware('role:committee');
     });
 });

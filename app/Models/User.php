@@ -32,4 +32,6 @@ class User extends Authenticatable
             'role' => UserRole::class,
         ];
     }
+
+    public function residencies() { return $this->hasMany(Residency::class); }
 }

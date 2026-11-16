@@ -13,8 +13,11 @@ return new class extends Migration
     {
         Schema::create('unit_types', function (Blueprint $table) {
             $table->id();
+            $table->string('name')->unique();
+            $table->decimal('monthly_fee', 10, 2);
             $table->timestamps();
         });
+
     }
 
     /**

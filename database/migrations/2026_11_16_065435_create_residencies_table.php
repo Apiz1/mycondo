@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('residencies', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained();
+            $table->foreignId('unit_id')->constrained();
+            $table->string('relationship'); // owner or tenant
+            $table->date('moved_in_at')->nullable();
+            $table->date('moved_out_at')->nullable();
             $table->timestamps();
         });
     }

@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('units', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('unit_type_id')->constrained();
+            $table->string('block')->nullable();
+            $table->string('unit_number');
             $table->timestamps();
+
+            $table->unique(['block', 'unit_number']);
         });
     }
 
