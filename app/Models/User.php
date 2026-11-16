@@ -33,5 +33,14 @@ class User extends Authenticatable
         ];
     }
 
-    public function residencies() { return $this->hasMany(Residency::class); }
+    public function residencies()
+    {
+        return $this->hasMany(Residency::class);
+    }
+
+    public function activeUnitIds()
+    {
+        return $this->residencies()->whereNull('moved_out_at')->pluck('unit_id');
+    }
+    
 }
