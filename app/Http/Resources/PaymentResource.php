@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Enums\PaymentStatus;
 
 class PaymentResource extends JsonResource
 {
@@ -29,6 +30,12 @@ class PaymentResource extends JsonResource
                 'name' => $this->payer->name,
             ]),
             'invoice' => new InvoiceResource($this->whenLoaded('invoice')),
+            'payment_url' => $this->when(
+                $this->billplz_url
+                    && $this->status === PaymentStatus::Pending
+                    && $request->user()?->id === $this->paid_by,
+                $this->billplz_url
+            ),
         ];
     }
 }

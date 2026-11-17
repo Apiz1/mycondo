@@ -8,6 +8,12 @@ use App\Http\Controllers\Api\V1\InvoiceController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\AnnouncementController;
 use App\Http\Controllers\Api\V1\ResidencyController;
+use App\Http\Controllers\Api\BillplzWebhookController;
+use App\Http\Controllers\Api\V1\BillplzPaymentController;
+
+    Route::post('/webhooks/billplz', BillplzWebhookController::class)
+        ->middleware('throttle:60,1')
+        ->name('billplz.callback');
 
 
 Route::prefix('v1')->group(function () {
@@ -23,6 +29,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/invoices/{invoice}/payments', [PaymentController::class, 'store'])->middleware('role:resident');
         Route::get('/announcements', [AnnouncementController::class, 'index']);
         Route::get('/announcements/{announcement}', [AnnouncementController::class, 'show']);
+        Route::post('/invoices/{invoice}/pay/billplz', [BillplzPaymentController::class, 'store'])->middleware('role:resident');
 
         Route::middleware('role:committee')->group(function () {
             Route::get('/payments', [PaymentController::class, 'index']);

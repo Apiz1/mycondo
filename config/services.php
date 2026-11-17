@@ -33,6 +33,15 @@ return [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
+        
+        'billplz' => [
+            'key' => env('BILLPLZ_API_KEY'),
+            'collection_id' => env('BILLPLZ_COLLECTION_ID'),
+            'x_signature_key' => env('BILLPLZ_X_SIGNATURE_KEY'),
+            'sandbox' => env('BILLPLZ_SANDBOX', true),
+            'callback_url' => env('BILLPLZ_CALLBACK_URL'),
+            'redirect_url' => env('BILLPLZ_REDIRECT_URL'),
+        ],
     ],
 
 ];
