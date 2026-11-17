@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\AnnouncementRequest;
 use App\Http\Resources\AnnouncementResource;
 use App\Models\Announcement;
+use App\Models\ActivityLog;
 
 class AnnouncementController extends Controller
 {
@@ -29,6 +30,8 @@ class AnnouncementController extends Controller
             'author_id' => $request->user()->id,
         ]);
 
+        ActivityLog::record('announcement.created', "Announcement posted: {$announcement->title}", $announcement);
+
         return new AnnouncementResource($announcement->load('author'));
     }
 
@@ -36,11 +39,15 @@ class AnnouncementController extends Controller
     {
         $announcement->update($request->validated());
 
+        ActivityLog::record('announcement.updated', "Announcement edited: {$announcement->title}", $announcement);
+
         return new AnnouncementResource($announcement->load('author'));
     }
 
     public function destroy(Announcement $announcement)
     {
+        ActivityLog::record('announcement.deleted', "Announcement deleted: {$announcement->title}", null, ['announcement_id' => $announcement->id]);
+
         $announcement->delete();
 
         return response()->noContent();

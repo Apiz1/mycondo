@@ -10,6 +10,7 @@ use App\Http\Requests\StorePaymentRequest;
 use App\Http\Resources\PaymentResource;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -41,6 +42,8 @@ class PaymentController extends Controller
                 'proof_path' => $request->file('proof')->store('payment-proofs'),
                 'note' => $request->validated('note'),
             ]);
+
+            ActivityLog::record('payment.submitted', "Transfer proof submitted for invoice #{$invoice->id}", $payment, ['invoice_id' => $invoice->id]);
 
             return new PaymentResource($payment);
         });
@@ -80,6 +83,8 @@ class PaymentController extends Controller
 
             $payment->invoice()->update(['status' => InvoiceStatus::Paid->value]);
 
+            ActivityLog::record('payment.approved', "Payment #{$payment->id} approved", $payment, ['invoice_id' => $payment->invoice_id]);
+
             return new PaymentResource($payment->load(['payer', 'invoice.unit.unitType']));
         });
     }
@@ -103,6 +108,8 @@ class PaymentController extends Controller
                 'verified_at' => now(),
                 'review_note' => $data['review_note'],
             ]);
+
+            ActivityLog::record('payment.rejected', "Payment #{$payment->id} rejected", $payment, ['reason' => $data['review_note']]);
 
             return new PaymentResource($payment->load(['payer', 'invoice.unit.unitType']));
         });

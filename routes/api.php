@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\AnnouncementController;
 use App\Http\Controllers\Api\V1\ResidencyController;
 use App\Http\Controllers\Api\BillplzWebhookController;
 use App\Http\Controllers\Api\V1\BillplzPaymentController;
+use App\Http\Controllers\Api\V1\ActivityLogController;
 
     Route::post('/webhooks/billplz', BillplzWebhookController::class)
         ->middleware('throttle:60,1')
@@ -30,6 +31,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/announcements', [AnnouncementController::class, 'index']);
         Route::get('/announcements/{announcement}', [AnnouncementController::class, 'show']);
         Route::post('/invoices/{invoice}/pay/billplz', [BillplzPaymentController::class, 'store'])->middleware('role:resident');
+        Route::get('/activity-logs', [ActivityLogController::class, 'index'])->middleware('role:admin');
 
         Route::middleware('role:committee')->group(function () {
             Route::get('/payments', [PaymentController::class, 'index']);

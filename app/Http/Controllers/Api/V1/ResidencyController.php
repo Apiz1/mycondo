@@ -10,6 +10,7 @@ use App\Http\Resources\ResidencyResource;
 use App\Models\Residency;
 use App\Models\Unit;
 use App\Models\User;
+use App\Models\ActivityLog;
 use Illuminate\Support\Facades\DB;
 
 class ResidencyController extends Controller
@@ -57,6 +58,8 @@ class ResidencyController extends Controller
                 'moved_in_at' => $request->validated('moved_in_at') ?? today(),
             ]);
 
+            ActivityLog::record('resident.added', "Added {$user->name} to unit #{$unit->id}", $residency, ['unit_id' => $unit->id]);
+
             return new ResidencyResource($residency->load('user'));
         });
     }
@@ -76,6 +79,8 @@ class ResidencyController extends Controller
         }
 
         $residency->update(['moved_out_at' => $data['moved_out_at'] ?? today()]);
+
+        ActivityLog::record('resident.moved_out', "Resident moved out of unit #{$residency->unit_id}", $residency);
 
         return new ResidencyResource($residency->load('user'));
     }

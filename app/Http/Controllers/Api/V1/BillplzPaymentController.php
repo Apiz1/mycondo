@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\PaymentResource;
 use App\Models\Invoice;
 use App\Services\BillplzService;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -51,6 +52,9 @@ class BillplzPaymentController extends Controller
                     'billplz_bill_id' => $bill['id'],
                     'billplz_url' => $bill['url'],
                 ]);
+                
+                ActivityLog::record('payment.billplz_started', "Online payment started for invoice #{$invoice->id}", $payment);
+
 
                 return new PaymentResource($payment);
             });
