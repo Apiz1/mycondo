@@ -7,6 +7,7 @@ use App\Models\Residency;
 use App\Models\Unit;
 use App\Models\UnitType;
 use App\Models\User;
+use App\Models\Facility;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
@@ -48,6 +49,9 @@ class DatabaseSeeder extends Seeder
             'relationship' => 'owner',
             'moved_in_at' => now()->subYear(),
         ]);
+
+        Facility::create(['name' => 'Function Hall', 'needs_approval' => true]);
+        Facility::create(['name' => 'Badminton Court', 'open_time' => '07:00', 'close_time' => '23:00', 'max_duration_minutes' => 120]);
 
         Artisan::call('invoices:generate');
     }

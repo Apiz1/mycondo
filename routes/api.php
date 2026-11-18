@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\V1\ResidencyController;
 use App\Http\Controllers\Api\BillplzWebhookController;
 use App\Http\Controllers\Api\V1\BillplzPaymentController;
 use App\Http\Controllers\Api\V1\ActivityLogController;
+use App\Http\Controllers\Api\V1\FacilityController;
+use App\Http\Controllers\Api\V1\BookingController;
 
     Route::post('/webhooks/billplz', BillplzWebhookController::class)
         ->middleware('throttle:60,1')
@@ -33,6 +35,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/invoices/{invoice}/pay/billplz', [BillplzPaymentController::class, 'store'])->middleware('role:resident');
         Route::get('/activity-logs', [ActivityLogController::class, 'index'])->middleware('role:admin');
 
+        // any logged-in role
+        Route::get('/facilities', [FacilityController::class, 'index']);
+        Route::get('/facilities/{facility}/availability', [FacilityController::class, 'availability']);
+
+        // residents
+        Route::post('/facilities/{facility}/bookings', [BookingController::class, 'store'])->middleware('role:resident');
+
         Route::middleware('role:committee')->group(function () {
             Route::get('/payments', [PaymentController::class, 'index']);
             Route::get('/payments/{payment}/proof', [PaymentController::class, 'proof']);
@@ -44,6 +53,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/units/{unit}/residents', [ResidencyController::class, 'index']);
             Route::post('/units/{unit}/residents', [ResidencyController::class, 'store']);
             Route::patch('/residencies/{residency}/move-out', [ResidencyController::class, 'moveOut']);
+            Route::post('/facilities', [FacilityController::class, 'store']);
+            Route::put('/facilities/{facility}', [FacilityController::class, 'update']);
         });
     });
 });
