@@ -6,6 +6,7 @@ use App\Enums\BookingStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBookingRequest;
 use App\Http\Resources\BookingResource;
+use App\Enums\UserRole;
 use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\Facility;
@@ -13,6 +14,10 @@ use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
+
 
 class BookingController extends Controller
 {
@@ -78,4 +83,97 @@ class BookingController extends Controller
 
         return new BookingResource($booking->load('facility'));
     }
+
+    public function index(Request $request)
+    {
+        $request->validate([
+            'status' => ['nullable', Rule::enum(BookingStatus::class)],
+            'facility_id' => ['nullable', 'integer'],
+        ]);
+
+        $query = Booking::with(['facility', 'user:id,name'])->latest('start_at');
+
+        if ($request->user()->role === UserRole::Resident) {
+            $query->where('user_id', $request->user()->id);
+        }
+
+        $query
+            ->when($request->query('status'), fn ($q, $status) => $q->where('status', $status))
+            ->when($request->query('facility_id'), fn ($q, $id) => $q->where('facility_id', $id));
+
+        return BookingResource::collection($query->paginate(15));
+    }
+
+    public function cancel(Request $request, Booking $booking)
+    {
+        Gate::authorize('cancel', $booking);
+
+        return DB::transaction(function () use ($booking) {
+            $booking = Booking::whereKey($booking->id)->lockForUpdate()->first();
+
+            if (! in_array($booking->status, [BookingStatus::Pending, BookingStatus::Approved], true)) {
+                return response()->json(['message' => 'This booking can no longer be cancelled.'], 409);
+            }
+
+            if ($booking->start_at->isPast()) {
+                return response()->json(['message' => 'A booking that has already started cannot be cancelled.'], 409);
+            }
+
+            $booking->update(['status' => BookingStatus::Cancelled]);
+
+            ActivityLog::record('booking.cancelled', "Booking #{$booking->id} cancelled", $booking);
+
+            return new BookingResource($booking->load('facility'));
+        });
+    }
+
+    public function approve(Request $request, Booking $booking)
+    {
+        return DB::transaction(function () use ($request, $booking) {
+            $booking = Booking::whereKey($booking->id)->lockForUpdate()->first();
+
+            if ($booking->status !== BookingStatus::Pending) {
+                return response()->json(['message' => 'Only pending bookings can be approved.'], 409);
+            }
+
+            if ($booking->start_at->isPast()) {
+                return response()->json(['message' => 'This booking has already started and can no longer be approved.'], 409);
+            }
+
+            $booking->update([
+                'status' => BookingStatus::Approved,
+                'decided_by' => $request->user()->id,
+            ]);
+
+            ActivityLog::record('booking.approved', "Booking #{$booking->id} approved", $booking);
+
+            return new BookingResource($booking->load(['facility', 'user:id,name']));
+        });
+    }
+
+    public function reject(Request $request, Booking $booking)
+    {
+        $data = $request->validate([
+            'review_note' => ['required', 'string', 'max:500'],
+        ]);
+
+        return DB::transaction(function () use ($request, $booking, $data) {
+            $booking = Booking::whereKey($booking->id)->lockForUpdate()->first();
+
+            if ($booking->status !== BookingStatus::Pending) {
+                return response()->json(['message' => 'Only pending bookings can be rejected.'], 409);
+            }
+
+            $booking->update([
+                'status' => BookingStatus::Rejected,
+                'decided_by' => $request->user()->id,
+                'review_note' => $data['review_note'],
+            ]);
+
+            ActivityLog::record('booking.rejected', "Booking #{$booking->id} rejected", $booking, ['reason' => $data['review_note']]);
+
+            return new BookingResource($booking->load(['facility', 'user:id,name']));
+        });
+    }
+
 }

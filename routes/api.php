@@ -34,6 +34,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/announcements/{announcement}', [AnnouncementController::class, 'show']);
         Route::post('/invoices/{invoice}/pay/billplz', [BillplzPaymentController::class, 'store'])->middleware('role:resident');
         Route::get('/activity-logs', [ActivityLogController::class, 'index'])->middleware('role:admin');
+        Route::get('/bookings', [BookingController::class, 'index'])->middleware('role:resident,committee');
+        Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->middleware('role:resident,committee');
 
         // any logged-in role
         Route::get('/facilities', [FacilityController::class, 'index']);
@@ -55,6 +57,8 @@ Route::prefix('v1')->group(function () {
             Route::patch('/residencies/{residency}/move-out', [ResidencyController::class, 'moveOut']);
             Route::post('/facilities', [FacilityController::class, 'store']);
             Route::put('/facilities/{facility}', [FacilityController::class, 'update']);
+            Route::post('/bookings/{booking}/approve', [BookingController::class, 'approve']);
+            Route::post('/bookings/{booking}/reject', [BookingController::class, 'reject']);
         });
     });
 });

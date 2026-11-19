@@ -14,13 +14,18 @@ class BookingResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
+       return [
             'id' => $this->id,
             'facility' => new FacilityResource($this->whenLoaded('facility')),
             'start_at' => $this->start_at->toIso8601String(),
             'end_at' => $this->end_at->toIso8601String(),
             'status' => $this->status->value,
             'purpose' => $this->purpose,
+            'review_note' => $this->review_note,
+            'user' => $this->whenLoaded('user', fn () => [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+            ]),
         ];
     }
 }
