@@ -13,6 +13,8 @@ use App\Http\Controllers\Api\V1\BillplzPaymentController;
 use App\Http\Controllers\Api\V1\ActivityLogController;
 use App\Http\Controllers\Api\V1\FacilityController;
 use App\Http\Controllers\Api\V1\BookingController;
+use App\Http\Controllers\Api\V1\ComplaintController;
+use App\Http\Controllers\Api\V1\ComplaintCommentController;
 
     Route::post('/webhooks/billplz', BillplzWebhookController::class)
         ->middleware('throttle:60,1')
@@ -44,6 +46,13 @@ Route::prefix('v1')->group(function () {
         // residents
         Route::post('/facilities/{facility}/bookings', [BookingController::class, 'store'])->middleware('role:resident');
 
+        // Complaints
+        Route::get('/complaints', [ComplaintController::class, 'index'])->middleware('role:resident,committee');
+        Route::post('/complaints', [ComplaintController::class, 'store'])->middleware('role:resident');
+        Route::get('/complaints/{complaint}', [ComplaintController::class, 'show'])->middleware('role:resident,committee');
+        Route::get('/complaints/{complaint}/photo', [ComplaintController::class, 'photo'])->middleware('role:resident,committee');
+        Route::post('/complaints/{complaint}/comments', [ComplaintCommentController::class, 'store'])->middleware('role:resident,committee');
+
         Route::middleware('role:committee')->group(function () {
             Route::get('/payments', [PaymentController::class, 'index']);
             Route::get('/payments/{payment}/proof', [PaymentController::class, 'proof']);
@@ -59,6 +68,7 @@ Route::prefix('v1')->group(function () {
             Route::put('/facilities/{facility}', [FacilityController::class, 'update']);
             Route::post('/bookings/{booking}/approve', [BookingController::class, 'approve']);
             Route::post('/bookings/{booking}/reject', [BookingController::class, 'reject']);
+            Route::patch('/complaints/{complaint}/status', [ComplaintController::class, 'updateStatus']);
         });
     });
 });
