@@ -14,4 +14,9 @@ class Unit extends Model
     {
         return $this->hasMany(Invoice::class);
     }
+
+    public function getLabelAttribute(): string
+    {
+        return ($this->block ? $this->block.'-' : '').$this->unit_number;
+    }
 }

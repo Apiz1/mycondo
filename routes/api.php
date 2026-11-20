@@ -15,6 +15,8 @@ use App\Http\Controllers\Api\V1\FacilityController;
 use App\Http\Controllers\Api\V1\BookingController;
 use App\Http\Controllers\Api\V1\ComplaintController;
 use App\Http\Controllers\Api\V1\ComplaintCommentController;
+use App\Http\Controllers\Api\V1\VisitorController;
+use App\Http\Controllers\Api\V1\GateController;
 
     Route::post('/webhooks/billplz', BillplzWebhookController::class)
         ->middleware('throttle:60,1')
@@ -53,6 +55,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/complaints/{complaint}/photo', [ComplaintController::class, 'photo'])->middleware('role:resident,committee');
         Route::post('/complaints/{complaint}/comments', [ComplaintCommentController::class, 'store'])->middleware('role:resident,committee');
 
+        // Visitor
+        Route::post('/visitors', [VisitorController::class, 'store'])->middleware('role:resident');
+        Route::get('/visitors', [VisitorController::class, 'index'])->middleware('role:resident,committee');
+        Route::post('/visitors/{visitor}/cancel', [VisitorController::class, 'cancel'])->middleware('role:resident,committee');
+
         Route::middleware('role:committee')->group(function () {
             Route::get('/payments', [PaymentController::class, 'index']);
             Route::get('/payments/{payment}/proof', [PaymentController::class, 'proof']);
@@ -69,6 +76,12 @@ Route::prefix('v1')->group(function () {
             Route::post('/bookings/{booking}/approve', [BookingController::class, 'approve']);
             Route::post('/bookings/{booking}/reject', [BookingController::class, 'reject']);
             Route::patch('/complaints/{complaint}/status', [ComplaintController::class, 'updateStatus']);
+        });
+
+        Route::middleware(['role:security', 'throttle:30,1'])->prefix('gate')->group(function () {
+            Route::get('/expected', [GateController::class, 'expected']);
+            Route::post('/check-in', [GateController::class, 'checkIn']);
+            Route::post('/check-out', [GateController::class, 'checkOut']);
         });
     });
 });
