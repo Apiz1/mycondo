@@ -11,6 +11,7 @@ use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\Facility;
 use App\Notifications\BookingReviewed;
+use App\Notifications\BookingCancelled;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -109,7 +110,7 @@ class BookingController extends Controller
     {
         Gate::authorize('cancel', $booking);
 
-        return DB::transaction(function () use ($booking) {
+        return DB::transaction(function () use ($request, $booking) {
             $booking = Booking::whereKey($booking->id)->lockForUpdate()->first();
 
             if (! in_array($booking->status, [BookingStatus::Pending, BookingStatus::Approved], true)) {
@@ -123,6 +124,11 @@ class BookingController extends Controller
             $booking->update(['status' => BookingStatus::Cancelled]);
 
             ActivityLog::record('booking.cancelled', "Booking #{$booking->id} cancelled", $booking);
+
+            // Only tell the resident when someone else cancelled it
+            if ($request->user()->id !== $booking->user_id) {
+                $booking->user->notify(new BookingCancelled($booking));
+            }
 
             return new BookingResource($booking->load('facility'));
         });

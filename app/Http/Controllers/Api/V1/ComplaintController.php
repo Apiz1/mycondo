@@ -11,6 +11,7 @@ use App\Http\Requests\StoreComplaintRequest;
 use App\Http\Resources\ComplaintResource;
 use App\Models\ActivityLog;
 use App\Models\Complaint;
+use App\Notifications\ComplaintStatusChanged;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -103,6 +104,8 @@ class ComplaintController extends Controller
                 return response()->json(['message' => 'A closed complaint cannot be changed.'], 409);
             }
 
+            $old = $complaint->status;
+
             $complaint->update([
                 'status' => $new,
                 'resolved_at' => in_array($new, [ComplaintStatus::Resolved, ComplaintStatus::Closed], true)
@@ -116,6 +119,11 @@ class ComplaintController extends Controller
                 $complaint,
                 ['status' => $new->value],
             );
+
+             // Only notify when the status really changed
+            if ($old !== $new) {
+                $complaint->reporter->notify(new ComplaintStatusChanged($complaint));
+            }
 
             return new ComplaintResource($complaint->load(['unit.unitType', 'reporter:id,name']));
         });

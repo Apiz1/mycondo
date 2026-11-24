@@ -10,6 +10,8 @@ use App\Models\Residency;
 use App\Models\Unit;
 use App\Models\UnitType;
 use App\Models\User;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\ComplaintStatusChanged;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -153,6 +155,8 @@ class ComplaintTest extends TestCase
 
     public function test_the_committee_moves_a_complaint_through_its_statuses(): void
     {
+        Notification::fake();
+
         $complaint = $this->makeComplaint($this->resident, $this->unitOne);
         Sanctum::actingAs($this->committee);
 
@@ -170,6 +174,23 @@ class ComplaintTest extends TestCase
         $this->patchJson("/api/v1/complaints/{$complaint->id}/status", ['status' => 'open'])->assertStatus(409);
 
         $this->assertDatabaseHas('activity_logs', ['action' => 'complaint.status_changed', 'user_id' => $this->committee->id]);
+
+        // 4 real changes notify the person who filed it; the refused 409 sends nothing
+        Notification::assertSentToTimes($this->resident, ComplaintStatusChanged::class, 4);
+        Notification::assertNotSentTo($this->committee, ComplaintStatusChanged::class);
+    }
+
+    public function test_setting_the_same_status_does_not_notify(): void
+    {
+        Notification::fake();
+
+        $complaint = $this->makeComplaint($this->resident, $this->unitOne);
+        Sanctum::actingAs($this->committee);
+
+        // The complaint is already open, so "open" is not a change
+        $this->patchJson("/api/v1/complaints/{$complaint->id}/status", ['status' => 'open'])->assertOk();
+
+        Notification::assertNothingSent();
     }
 
     public function test_a_resident_cannot_change_a_complaints_status(): void

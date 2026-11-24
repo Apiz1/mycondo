@@ -9,6 +9,8 @@ use App\Models\Residency;
 use App\Models\Unit;
 use App\Models\UnitType;
 use App\Models\User;
+use App\Notifications\PaymentReviewed;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -134,16 +136,21 @@ class FeeFlowTest extends TestCase
 
     public function test_resident_cannot_approve_payments(): void
     {
+        Notification::fake();
+
         Sanctum::actingAs($this->resident);
         $paymentId = $this->submitProof($this->ownInvoice)->json('data.id');
 
         $this->postJson("/api/v1/payments/{$paymentId}/approve")->assertForbidden();
 
         $this->assertSame(InvoiceStatus::Unpaid, $this->ownInvoice->fresh()->status);
+        Notification::assertNothingSent();
     }
 
     public function test_committee_approval_marks_the_invoice_paid(): void
     {
+        Notification::fake();
+
         Sanctum::actingAs($this->resident);
         $paymentId = $this->submitProof($this->ownInvoice)->json('data.id');
 
@@ -154,20 +161,30 @@ class FeeFlowTest extends TestCase
 
         $this->assertSame(InvoiceStatus::Paid, $this->ownInvoice->fresh()->status);
         $this->assertDatabaseHas('payments', ['id' => $paymentId, 'verified_by' => $this->committee->id]);
+
+        Notification::assertSentTo($this->resident, PaymentReviewed::class);
+        Notification::assertNotSentTo($this->committee, PaymentReviewed::class);
     }
 
     public function test_a_payment_cannot_be_reviewed_twice(): void
     {
+        Notification::fake();
+
         Sanctum::actingAs($this->resident);
         $paymentId = $this->submitProof($this->ownInvoice)->json('data.id');
 
         Sanctum::actingAs($this->committee);
         $this->postJson("/api/v1/payments/{$paymentId}/approve")->assertOk();
         $this->postJson("/api/v1/payments/{$paymentId}/approve")->assertStatus(409);
+
+        // The refused second attempt must not send a second notification
+        Notification::assertSentToTimes($this->resident, PaymentReviewed::class, 1);
     }
 
     public function test_rejection_needs_a_reason_and_lets_the_resident_resubmit(): void
     {
+        Notification::fake();
+
         Sanctum::actingAs($this->resident);
         $paymentId = $this->submitProof($this->ownInvoice)->json('data.id');
 
@@ -184,5 +201,8 @@ class FeeFlowTest extends TestCase
 
         Sanctum::actingAs($this->resident);
         $this->submitProof($this->ownInvoice)->assertCreated();
+
+        // The failed validation sent nothing, the rejection sent one, resubmitting sends none
+        Notification::assertSentToTimes($this->resident, PaymentReviewed::class, 1);
     }
 }

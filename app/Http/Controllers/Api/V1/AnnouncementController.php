@@ -8,6 +8,10 @@ use App\Http\Requests\AnnouncementRequest;
 use App\Http\Resources\AnnouncementResource;
 use App\Models\Announcement;
 use App\Models\ActivityLog;
+use App\Models\Residency;
+use App\Models\User;
+use App\Notifications\AnnouncementPosted;
+use Illuminate\Support\Facades\Notification;
 
 class AnnouncementController extends Controller
 {
@@ -31,6 +35,10 @@ class AnnouncementController extends Controller
         ]);
 
         ActivityLog::record('announcement.created', "Announcement posted: {$announcement->title}", $announcement);
+
+        User::whereIn('id', Residency::whereNull('moved_out_at')->select('user_id'))
+            ->where('id', '!=', $request->user()->id)
+            ->chunkById(200, fn ($users) => Notification::send($users, new AnnouncementPosted($announcement)));
 
         return new AnnouncementResource($announcement->load('author'));
     }

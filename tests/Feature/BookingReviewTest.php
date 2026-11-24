@@ -10,6 +10,9 @@ use App\Models\Residency;
 use App\Models\Unit;
 use App\Models\UnitType;
 use App\Models\User;
+use App\Notifications\BookingCancelled;
+use App\Notifications\BookingReviewed;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -78,6 +81,8 @@ class BookingReviewTest extends TestCase
 
     public function test_a_resident_can_cancel_their_booking_and_the_slot_becomes_free(): void
     {
+        Notification::fake();
+
         $booking = $this->makeBooking($this->resident);
         Sanctum::actingAs($this->resident);
 
@@ -86,6 +91,88 @@ class BookingReviewTest extends TestCase
             ->assertJsonPath('data.status', 'cancelled');
 
         $this->bookSameSlotViaApi()->assertCreated();
+
+        // Cancelling your own booking tells nobody
+        Notification::assertNothingSent();
+    }
+
+    public function test_the_committee_can_cancel_any_booking(): void
+    {
+        Notification::fake();
+
+        $booking = $this->makeBooking($this->resident);
+        Sanctum::actingAs($this->committee);
+
+        $this->postJson("/api/v1/bookings/{$booking->id}/cancel")->assertOk();
+
+        Notification::assertSentTo($this->resident, BookingCancelled::class);
+        Notification::assertNotSentTo($this->committee, BookingCancelled::class);
+    }
+
+    public function test_the_committee_can_approve_a_pending_booking(): void
+    {
+        Notification::fake();
+
+        $booking = $this->makeBooking($this->resident);
+        Sanctum::actingAs($this->committee);
+
+        $this->postJson("/api/v1/bookings/{$booking->id}/approve")
+            ->assertOk()
+            ->assertJsonPath('data.status', 'approved');
+
+        $this->assertDatabaseHas('bookings', ['id' => $booking->id, 'decided_by' => $this->committee->id]);
+        $this->assertDatabaseHas('activity_logs', ['action' => 'booking.approved', 'user_id' => $this->committee->id]);
+
+        Notification::assertSentTo($this->resident, BookingReviewed::class);
+    }
+
+    public function test_only_pending_bookings_can_be_approved(): void
+    {
+        Notification::fake();
+
+        $booking = $this->makeBooking($this->resident, ['status' => BookingStatus::Approved]);
+        Sanctum::actingAs($this->committee);
+
+        $this->postJson("/api/v1/bookings/{$booking->id}/approve")->assertStatus(409);
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_rejection_needs_a_reason_and_frees_the_slot(): void
+    {
+        Notification::fake();
+
+        $booking = $this->makeBooking($this->resident);
+        Sanctum::actingAs($this->committee);
+
+        $this->postJson("/api/v1/bookings/{$booking->id}/reject")
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('review_note');
+
+        $this->postJson("/api/v1/bookings/{$booking->id}/reject", ['review_note' => 'Reserved for the AGM'])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'rejected');
+
+        Sanctum::actingAs($this->resident);
+        $this->bookSameSlotViaApi()->assertCreated();
+
+        // The failed validation sent nothing; the real rejection sent exactly one
+        Notification::assertSentToTimes($this->resident, BookingReviewed::class, 1);
+    }
+
+    public function test_a_resident_cannot_approve_bookings(): void
+    {
+        Notification::fake();
+
+        $booking = $this->makeBooking($this->resident);
+        Sanctum::actingAs($this->resident);
+
+        $this->postJson("/api/v1/bookings/{$booking->id}/approve")
+            ->assertForbidden()
+            ->assertJsonPath('message', 'You do not have permission to do this.');
+
+        $this->assertSame(BookingStatus::Pending, $booking->fresh()->status);
+        Notification::assertNothingSent();
     }
 
     public function test_a_resident_cannot_cancel_someone_elses_booking(): void
@@ -96,14 +183,6 @@ class BookingReviewTest extends TestCase
         $this->postJson("/api/v1/bookings/{$booking->id}/cancel")->assertForbidden();
 
         $this->assertSame(BookingStatus::Pending, $booking->fresh()->status);
-    }
-
-    public function test_the_committee_can_cancel_any_booking(): void
-    {
-        $booking = $this->makeBooking($this->resident);
-        Sanctum::actingAs($this->committee);
-
-        $this->postJson("/api/v1/bookings/{$booking->id}/cancel")->assertOk();
     }
 
     public function test_a_cancelled_booking_cannot_be_cancelled_again(): void
@@ -126,27 +205,6 @@ class BookingReviewTest extends TestCase
         $this->postJson("/api/v1/bookings/{$booking->id}/cancel")->assertStatus(409);
     }
 
-    public function test_the_committee_can_approve_a_pending_booking(): void
-    {
-        $booking = $this->makeBooking($this->resident);
-        Sanctum::actingAs($this->committee);
-
-        $this->postJson("/api/v1/bookings/{$booking->id}/approve")
-            ->assertOk()
-            ->assertJsonPath('data.status', 'approved');
-
-        $this->assertDatabaseHas('bookings', ['id' => $booking->id, 'decided_by' => $this->committee->id]);
-        $this->assertDatabaseHas('activity_logs', ['action' => 'booking.approved', 'user_id' => $this->committee->id]);
-    }
-
-    public function test_only_pending_bookings_can_be_approved(): void
-    {
-        $booking = $this->makeBooking($this->resident, ['status' => BookingStatus::Approved]);
-        Sanctum::actingAs($this->committee);
-
-        $this->postJson("/api/v1/bookings/{$booking->id}/approve")->assertStatus(409);
-    }
-
     public function test_a_booking_that_has_already_started_cannot_be_approved(): void
     {
         $booking = $this->makeBooking($this->resident, [
@@ -156,34 +214,5 @@ class BookingReviewTest extends TestCase
         Sanctum::actingAs($this->committee);
 
         $this->postJson("/api/v1/bookings/{$booking->id}/approve")->assertStatus(409);
-    }
-
-    public function test_rejection_needs_a_reason_and_frees_the_slot(): void
-    {
-        $booking = $this->makeBooking($this->resident);
-        Sanctum::actingAs($this->committee);
-
-        $this->postJson("/api/v1/bookings/{$booking->id}/reject")
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors('review_note');
-
-        $this->postJson("/api/v1/bookings/{$booking->id}/reject", ['review_note' => 'Reserved for the AGM'])
-            ->assertOk()
-            ->assertJsonPath('data.status', 'rejected');
-
-        Sanctum::actingAs($this->resident);
-        $this->bookSameSlotViaApi()->assertCreated();
-    }
-
-    public function test_a_resident_cannot_approve_bookings(): void
-    {
-        $booking = $this->makeBooking($this->resident);
-        Sanctum::actingAs($this->resident);
-
-        $this->postJson("/api/v1/bookings/{$booking->id}/approve")
-            ->assertForbidden()
-            ->assertJsonPath('message', 'You do not have permission to do this.');
-
-        $this->assertSame(BookingStatus::Pending, $booking->fresh()->status);
     }
 }
