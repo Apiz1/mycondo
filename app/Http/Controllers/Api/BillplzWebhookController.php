@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Payment;
 use App\Services\BillplzService;
+use App\Notifications\PaymentReviewed;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -75,6 +76,8 @@ class BillplzWebhookController extends Controller
                 "Billplz payment received for payment #{$payment->id}",
                 $payment,
             );
+
+            $payment->payer->notify(new PaymentReviewed($payment));
         });
 
         return response()->json(['status' => 'ok']);

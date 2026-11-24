@@ -6,6 +6,10 @@ use App\Enums\InvoiceStatus;
 use App\Models\Invoice;
 use App\Models\Unit;
 use App\Models\UnitType;
+use App\Models\Residency;
+use App\Models\User;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\InvoiceOverdue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -63,5 +67,46 @@ class InvoiceCommandsTest extends TestCase
         $this->assertSame(InvoiceStatus::Overdue, $late->fresh()->status);
         $this->assertSame(InvoiceStatus::Unpaid, $notYetDue->fresh()->status);
         $this->assertSame(InvoiceStatus::Paid, $alreadyPaid->fresh()->status);
+    }
+
+    public function test_mark_overdue_notifies_active_residents_once(): void
+    {
+        Notification::fake();
+
+        $unit = $this->makeUnit();
+
+        $current = User::factory()->create(['role' => 'resident']);
+        $movedOut = User::factory()->create(['role' => 'resident']);
+
+        Residency::create([
+            'unit_id' => $unit->id,
+            'user_id' => $current->id,
+            'relationship' => 'owner',
+            'moved_in_at' => today()->subYear(),
+            'moved_out_at' => null,
+        ]);
+
+        Residency::create([
+            'unit_id' => $unit->id,
+            'user_id' => $movedOut->id,
+            'relationship' => 'tenant',
+            'moved_in_at' => today()->subYears(2),
+            'moved_out_at' => today()->subMonths(6),
+        ]);
+
+        Invoice::create([
+            'unit_id' => $unit->id, 'period' => '2026-09-01', 'amount' => 150,
+            'due_date' => today()->subDay(), 'status' => InvoiceStatus::Unpaid,
+        ]);
+
+        $this->artisan('invoices:mark-overdue')->assertSuccessful();
+
+        Notification::assertSentTo($current, InvoiceOverdue::class);
+        Notification::assertNotSentTo($movedOut, InvoiceOverdue::class);
+
+        // Second run: the invoice is already overdue, so nothing more is sent
+        $this->artisan('invoices:mark-overdue')->assertSuccessful();
+
+        Notification::assertSentToTimes($current, InvoiceOverdue::class, 1);
     }
 }

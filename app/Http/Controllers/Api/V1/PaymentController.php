@@ -11,6 +11,7 @@ use App\Http\Resources\PaymentResource;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\ActivityLog;
+use App\Notifications\PaymentReviewed;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -85,6 +86,8 @@ class PaymentController extends Controller
 
             ActivityLog::record('payment.approved', "Payment #{$payment->id} approved", $payment, ['invoice_id' => $payment->invoice_id]);
 
+            $payment->payer->notify(new PaymentReviewed($payment));
+
             return new PaymentResource($payment->load(['payer', 'invoice.unit.unitType']));
         });
     }
@@ -110,6 +113,8 @@ class PaymentController extends Controller
             ]);
 
             ActivityLog::record('payment.rejected', "Payment #{$payment->id} rejected", $payment, ['reason' => $data['review_note']]);
+
+            $payment->payer->notify(new PaymentReviewed($payment));
 
             return new PaymentResource($payment->load(['payer', 'invoice.unit.unitType']));
         });

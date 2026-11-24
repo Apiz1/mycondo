@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\V1\ComplaintController;
 use App\Http\Controllers\Api\V1\ComplaintCommentController;
 use App\Http\Controllers\Api\V1\VisitorController;
 use App\Http\Controllers\Api\V1\GateController;
+use App\Http\Controllers\Api\V1\NotificationController;
 
     Route::post('/webhooks/billplz', BillplzWebhookController::class)
         ->middleware('throttle:60,1')
@@ -59,6 +60,12 @@ Route::prefix('v1')->group(function () {
         Route::post('/visitors', [VisitorController::class, 'store'])->middleware('role:resident');
         Route::get('/visitors', [VisitorController::class, 'index'])->middleware('role:resident,committee');
         Route::post('/visitors/{visitor}/cancel', [VisitorController::class, 'cancel'])->middleware('role:resident,committee');
+
+        // Notifications
+        Route::get('notifications', [NotificationController::class, 'index']);
+        Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 
         Route::middleware('role:committee')->group(function () {
             Route::get('/payments', [PaymentController::class, 'index']);

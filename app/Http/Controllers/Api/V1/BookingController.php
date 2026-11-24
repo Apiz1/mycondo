@@ -10,6 +10,7 @@ use App\Enums\UserRole;
 use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\Facility;
+use App\Notifications\BookingReviewed;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -147,6 +148,8 @@ class BookingController extends Controller
 
             ActivityLog::record('booking.approved', "Booking #{$booking->id} approved", $booking);
 
+            $booking->user->notify(new BookingReviewed($booking));
+
             return new BookingResource($booking->load(['facility', 'user:id,name']));
         });
     }
@@ -171,6 +174,8 @@ class BookingController extends Controller
             ]);
 
             ActivityLog::record('booking.rejected', "Booking #{$booking->id} rejected", $booking, ['reason' => $data['review_note']]);
+
+            $booking->user->notify(new BookingReviewed($booking));
 
             return new BookingResource($booking->load(['facility', 'user:id,name']));
         });
