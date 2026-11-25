@@ -33,7 +33,7 @@ class BillplzService
                 'name' => $payer->name,
                 'amount' => (int) round(((float) $payment->amount) * 100), // sen
                 'callback_url' => $callbackUrl,
-                'redirect_url' => config('services.billplz.redirect_url') ?: config('app.url'),
+                'redirect_url' => config('services.billplz.redirect_url')?: rtrim(config('app.frontend_url'), '/') . "/invoices/{$payment->invoice_id}",
                 'description' => Str::limit("Maintenance fee {$invoice->period->format('F Y')} - Unit {$unitLabel}", 200, ''),
                 'reference_1_label' => 'Payment',
                 'reference_1' => (string) $payment->id,
