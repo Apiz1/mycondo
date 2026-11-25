@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\V1\ComplaintCommentController;
 use App\Http\Controllers\Api\V1\VisitorController;
 use App\Http\Controllers\Api\V1\GateController;
 use App\Http\Controllers\Api\V1\NotificationController;
+use App\Http\Controllers\Api\V1\UserController;
 
     Route::post('/webhooks/billplz', BillplzWebhookController::class)
         ->middleware('throttle:60,1')
@@ -90,5 +91,14 @@ Route::prefix('v1')->group(function () {
             Route::post('/check-in', [GateController::class, 'checkIn']);
             Route::post('/check-out', [GateController::class, 'checkOut']);
         });
+
+        Route::middleware('role:admin')->prefix('users')->group(function () {
+            Route::get('/', [UserController::class, 'index']);
+            Route::post('/', [UserController::class, 'store']);
+            Route::patch('/{user}/deactivate', [UserController::class, 'deactivate']);
+            Route::patch('/{user}/activate', [UserController::class, 'activate']);
+            Route::post('/{user}/reset-password', [UserController::class, 'resetPassword']);
+        });
+
     });
 });

@@ -1,0 +1,2556 @@
+{
+  "info": {
+    "name": "MyCondo API",
+    "description": "Manual testing collection for MyCondo. Run the four logins in folder 1 first, then use the role folders.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.request.headers.upsert({ key: \"Accept\", value: \"application/json\" });",
+          "const d = new Date();",
+          "const pad = (n) => String(n).padStart(2, '0');",
+          "pm.collectionVariables.set('today', d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()));"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost/api/v1"
+    },
+    {
+      "key": "resident_token",
+      "value": ""
+    },
+    {
+      "key": "committee_token",
+      "value": ""
+    },
+    {
+      "key": "admin_token",
+      "value": ""
+    },
+    {
+      "key": "security_token",
+      "value": ""
+    },
+    {
+      "key": "unit_id",
+      "value": "1"
+    },
+    {
+      "key": "invoice_id",
+      "value": "1"
+    },
+    {
+      "key": "payment_id",
+      "value": "1"
+    },
+    {
+      "key": "facility_id",
+      "value": "1"
+    },
+    {
+      "key": "booking_id",
+      "value": "1"
+    },
+    {
+      "key": "complaint_id",
+      "value": "1"
+    },
+    {
+      "key": "residency_id",
+      "value": "2"
+    },
+    {
+      "key": "announcement_id",
+      "value": "1"
+    },
+    {
+      "key": "visitor_id",
+      "value": "1"
+    },
+    {
+      "key": "visitor_code",
+      "value": ""
+    },
+    {
+      "key": "today",
+      "value": ""
+    },
+    {
+      "key": "api_url",
+      "value": "http://localhost/api"
+    },
+    {
+      "key": "billplz_x_signature_key",
+      "value": ""
+    },
+    {
+      "key": "billplz_bill_id",
+      "value": ""
+    },
+    {
+      "key": "billplz_amount_sen",
+      "value": "15000"
+    },
+    {
+      "key": "notification_id",
+      "value": ""
+    },
+    {
+      "key": "user_id",
+      "value": ""
+    },
+    {
+      "key": "admin_id",
+      "value": ""
+    },
+    {
+      "key": "new_staff_email",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Login (run these first)",
+      "item": [
+        {
+          "name": "Login as Resident",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"resident@mycondo.test\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login succeeded\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set('resident_token', pm.response.json().token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login as Committee",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"committee@mycondo.test\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login succeeded\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set('committee_token', pm.response.json().token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login as Admin",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@mycondo.test\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login succeeded\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set('admin_token', pm.response.json().token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login as Security",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"security@mycondo.test\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login succeeded\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set('security_token', pm.response.json().token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "noauth"
+      },
+      "description": "Run all four once. Each saves its token into a collection variable, and the role folders below use them automatically."
+    },
+    {
+      "name": "2. Resident",
+      "item": [
+        {
+          "name": "Who am I?",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List announcements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/announcements",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "announcements"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List my invoices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/invoices",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "invoices"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Show one invoice",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/invoices/{{invoice_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "invoices",
+                "{{invoice_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pay by bank transfer (upload proof)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/invoices/{{invoice_id}}/payments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "invoices",
+                "{{invoice_id}}",
+                "payments"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "proof",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "note",
+                  "value": "Paid via bank transfer",
+                  "type": "text"
+                }
+              ]
+            },
+            "description": "In the Body tab, click Select Files on the proof row and choose an image or PDF."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 300) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.data && body.data.id) {",
+                  "    pm.collectionVariables.set('payment_id', body.data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pay online with Billplz",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/invoices/{{invoice_id}}/pay/billplz",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "invoices",
+                "{{invoice_id}}",
+                "pay",
+                "billplz"
+              ]
+            },
+            "description": "Creates a real bill in the Billplz sandbox. Open payment_url in a browser to see the payment page."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 300) {",
+                  "  const data = pm.response.json().data;",
+                  "  pm.collectionVariables.set('payment_id', data.id);",
+                  "  if (data.payment_url) {",
+                  "    pm.collectionVariables.set('billplz_bill_id', data.payment_url.split('?')[0].split('/').pop());",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List facilities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/facilities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "facilities"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Facility availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/facilities/{{facility_id}}/availability?date=2026-12-01",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "facilities",
+                "{{facility_id}}",
+                "availability"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-12-01"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Book a facility",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/facilities/{{facility_id}}/bookings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "facilities",
+                "{{facility_id}}",
+                "bookings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-12-01\",\n  \"start_time\": \"10:00\",\n  \"end_time\": \"12:00\",\n  \"purpose\": \"Family gathering\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 300) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.data && body.data.id) {",
+                  "    pm.collectionVariables.set('booking_id', body.data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/bookings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel a booking",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings",
+                "{{booking_id}}",
+                "cancel"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List complaints",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/complaints",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "complaints"
+              ]
+            }
+          }
+        },
+        {
+          "name": "File a complaint (photo optional)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/complaints",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "complaints"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "category",
+                  "value": "maintenance",
+                  "type": "text"
+                },
+                {
+                  "key": "title",
+                  "value": "Leaking pipe",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Water under the kitchen sink",
+                  "type": "text"
+                },
+                {
+                  "key": "photo",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Tick the photo row and choose an image if you want to attach one."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 300) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.data && body.data.id) {",
+                  "    pm.collectionVariables.set('complaint_id', body.data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Show a complaint",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/complaints/{{complaint_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "complaints",
+                "{{complaint_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Comment on a complaint",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/complaints/{{complaint_id}}/comments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "complaints",
+                "{{complaint_id}}",
+                "comments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"It is still leaking\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Register a visitor",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/visitors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "visitors"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ali\",\n  \"vehicle_plate\": \"PBC 1234\",\n  \"visit_date\": \"{{today}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 300) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('visitor_id', body.data.id);",
+                  "  pm.collectionVariables.set('visitor_code', body.data.code);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List my visitor passes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/visitors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "visitors"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel a visitor pass",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/visitors/{{visitor_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "visitors",
+                "{{visitor_id}}",
+                "cancel"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List my notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications"
+              ]
+            },
+            "description": "Newest first, 15 per page. Saves the first notification id into {{notification_id}} for the next requests."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "if (body.data && body.data.length) {",
+                  "  pm.collectionVariables.set('notification_id', body.data[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List unread notifications only",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications?unread=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "unread",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Every item is unread\", () => pm.response.json().data.forEach(n => pm.expect(n.read_at).to.eql(null)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unread notification count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/unread-count",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "unread-count"
+              ]
+            },
+            "description": "Use this for the bell badge."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Has a numeric count\", () => pm.expect(pm.response.json().count).to.be.a(\"number\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark one notification as read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/{{notification_id}}/read",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "{{notification_id}}",
+                "read"
+              ]
+            },
+            "description": "Run \"List my notifications\" first so {{notification_id}} is set."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"read_at is filled in\", () => pm.expect(pm.response.json().read_at).to.not.eql(null));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark all notifications as read",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/read-all",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "read-all"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Count is 0\", () => pm.expect(pm.response.json().count).to.eql(0));"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{resident_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "3. Committee",
+      "item": [
+        {
+          "name": "Who am I?",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List units",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/units",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "units"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create a unit",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/units",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "units"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unit_type_id\": 1,\n  \"block\": \"B\",\n  \"unit_number\": \"1-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 300) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.data && body.data.id) {",
+                  "    pm.collectionVariables.set('unit_id', body.data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List residents of a unit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/units/{{unit_id}}/residents",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "units",
+                "{{unit_id}}",
+                "residents"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add a resident to a unit",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/units/{{unit_id}}/residents",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "units",
+                "{{unit_id}}",
+                "residents"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Aina\",\n  \"email\": \"aina@example.test\",\n  \"password\": \"password123\",\n  \"relationship\": \"tenant\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 300) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.data && body.data.id) {",
+                  "    pm.collectionVariables.set('residency_id', body.data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Move a resident out",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/residencies/{{residency_id}}/move-out",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "residencies",
+                "{{residency_id}}",
+                "move-out"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List overdue invoices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/invoices?status=overdue",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "invoices"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "overdue"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List pending payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/payments?status=pending",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "View a payment proof",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/payments/{{payment_id}}/proof",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments",
+                "{{payment_id}}",
+                "proof"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve a payment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/payments/{{payment_id}}/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments",
+                "{{payment_id}}",
+                "approve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reject a payment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/payments/{{payment_id}}/reject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments",
+                "{{payment_id}}",
+                "reject"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"review_note\": \"Amount does not match\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Post an announcement",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/announcements",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "announcements"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Water supply cut\",\n  \"body\": \"Tomorrow 9am to 1pm\",\n  \"is_pinned\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 300) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.data && body.data.id) {",
+                  "    pm.collectionVariables.set('announcement_id', body.data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Edit an announcement",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/announcements/{{announcement_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "announcements",
+                "{{announcement_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Water supply cut (updated)\",\n  \"body\": \"Tomorrow 9am to 2pm\",\n  \"is_pinned\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete an announcement",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/announcements/{{announcement_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "announcements",
+                "{{announcement_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create a facility",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/facilities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "facilities"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tennis Court\",\n  \"open_time\": \"07:00\",\n  \"close_time\": \"22:00\",\n  \"max_duration_minutes\": 120,\n  \"needs_approval\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 300) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.data && body.data.id) {",
+                  "    pm.collectionVariables.set('facility_id', body.data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update a facility",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/facilities/{{facility_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "facilities",
+                "{{facility_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tennis Court\",\n  \"open_time\": \"08:00\",\n  \"close_time\": \"22:00\",\n  \"max_duration_minutes\": 120,\n  \"needs_approval\": true,\n  \"is_active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List pending bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/bookings?status=pending",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve a booking",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings",
+                "{{booking_id}}",
+                "approve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reject a booking",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}/reject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings",
+                "{{booking_id}}",
+                "reject"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"review_note\": \"Reserved for the AGM\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List open complaints",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/complaints?status=open",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "complaints"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "open"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Change a complaint status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/complaints/{{complaint_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "complaints",
+                "{{complaint_id}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_progress\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Comment on a complaint",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/complaints/{{complaint_id}}/comments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "complaints",
+                "{{complaint_id}}",
+                "comments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"A plumber is booked for Friday\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Visitor log (today)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/visitors?date={{today}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "visitors"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "{{today}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Unread notification count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/unread-count",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "unread-count"
+              ]
+            },
+            "description": "The committee has its own inbox. It only sees notifications sent to the committee user."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Try to read a resident's notification (expect 404)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/{{notification_id}}/read",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "{{notification_id}}",
+                "read"
+              ]
+            },
+            "description": "Uses the committee token with the id saved from the resident folder. Must be 404."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Another user's notification is not found\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Try to list users (expect 403)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "raw": "{{base_url}}/users"
+            },
+            "description": "Uses the committee token. Only admin can manage users."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"User management is admin-only\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{committee_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "4. Admin",
+      "item": [
+        {
+          "name": "Who am I?",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set('admin_id', pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Activity log",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/activity-logs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "activity-logs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Activity log: payments only",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/activity-logs?category=payment",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "activity-logs"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "payment"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Activity log: security events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/activity-logs?category=security",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "activity-logs"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "security"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "raw": "{{base_url}}/users"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List security staff only",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "security"
+                }
+              ],
+              "raw": "{{base_url}}/users?role=security"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Only security accounts\", () => pm.response.json().data.forEach(u => pm.expect(u.role).to.eql(\"security\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "mycondo"
+                }
+              ],
+              "raw": "{{base_url}}/users?search=mycondo"
+            },
+            "description": "Matches name or email, case-insensitive."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create a security account",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "raw": "{{base_url}}/users"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Guard (test)\",\n  \"email\": \"{{new_staff_email}}\",\n  \"role\": \"security\",\n  \"password\": \"secret-pass-1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Generates a fresh email each run, saves the new id into {{user_id}}. Only committee and security can be created here."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const stamp = Date.now();",
+                  "pm.collectionVariables.set('new_staff_email', 'guard' + stamp + '@mycondo.test');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('user_id', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create a committee account",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "raw": "{{base_url}}/users"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Committee (test)\",\n  \"email\": \"{{new_staff_email}}\",\n  \"role\": \"committee\",\n  \"password\": \"secret-pass-1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const stamp = Date.now();",
+                  "pm.collectionVariables.set('new_staff_email', 'committee' + stamp + '@mycondo.test');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('user_id', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Log in as the new staff account",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login"
+              ],
+              "raw": "{{base_url}}/login"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{new_staff_email}}\",\n  \"password\": \"secret-pass-1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Run right after creating the account: 200. Run again after Deactivate: 403 \"Your account is not active\". After Reset password, the old password gives 422.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login result\", () => pm.expect(pm.response.code).to.be.oneOf([200, 403, 422]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deactivate a user",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}",
+                "deactivate"
+              ],
+              "raw": "{{base_url}}/users/{{user_id}}/deactivate"
+            },
+            "description": "Also deletes the user's tokens, so open sessions stop working immediately."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Status is inactive\", () => pm.expect(pm.response.json().data.status).to.eql(\"inactive\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reactivate a user",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}",
+                "activate"
+              ],
+              "raw": "{{base_url}}/users/{{user_id}}/activate"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Status is active\", () => pm.expect(pm.response.json().data.status).to.eql(\"active\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reset a user's password",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}",
+                "reset-password"
+              ],
+              "raw": "{{base_url}}/users/{{user_id}}/reset-password"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"brand-new-pass\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Replaces the password and ends the user's sessions. Log in with \"brand-new-pass\" afterwards."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deactivate my own account (expect 403)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{admin_id}}",
+                "deactivate"
+              ],
+              "raw": "{{base_url}}/users/{{admin_id}}/deactivate"
+            },
+            "description": "Run \"Who am I?\" first so {{admin_id}} is set."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"An admin cannot deactivate themselves\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{admin_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "5. Security",
+      "item": [
+        {
+          "name": "Who am I?",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List announcements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/announcements",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "announcements"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Today's expected visitors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/gate/expected",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "gate",
+                "expected"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Check in a visitor",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/gate/check-in",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "gate",
+                "check-in"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{visitor_code}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Check out a visitor",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/gate/check-out",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "gate",
+                "check-out"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{visitor_code}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{security_token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "description": "Register a visitor as the resident first. The pass code is saved automatically."
+    },
+    {
+      "name": "6. Billplz callback simulator",
+      "item": [
+        {
+          "name": "Simulate: Billplz says PAID",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{api_url}}/webhooks/billplz",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "webhooks",
+                "billplz"
+              ]
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "id",
+                  "value": "{{sim_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "collection_id",
+                  "value": "{{sim_collection_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "paid",
+                  "value": "{{sim_paid}}",
+                  "type": "text"
+                },
+                {
+                  "key": "state",
+                  "value": "{{sim_state}}",
+                  "type": "text"
+                },
+                {
+                  "key": "amount",
+                  "value": "{{sim_amount}}",
+                  "type": "text"
+                },
+                {
+                  "key": "paid_amount",
+                  "value": "{{sim_paid_amount}}",
+                  "type": "text"
+                },
+                {
+                  "key": "x_signature",
+                  "value": "{{sim_signature}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "description": "Run Resident > Pay online with Billplz first. This plays Billplz calling our webhook with a valid signature."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const key = pm.collectionVariables.get('billplz_x_signature_key');",
+                  "if (!key) { throw new Error('Set the collection variable billplz_x_signature_key first.'); }",
+                  "const params = {",
+                  "  id: pm.collectionVariables.get('billplz_bill_id'),",
+                  "  collection_id: 'sandbox-collection',",
+                  "  paid: 'true',",
+                  "  state: 'paid',",
+                  "  amount: String(pm.collectionVariables.get('billplz_amount_sen')),",
+                  "  paid_amount: String(pm.collectionVariables.get('billplz_amount_sen')),",
+                  "};",
+                  "const pairs = Object.keys(params).map((k) => k + params[k]);",
+                  "pairs.sort((a, b) => { const x = a.toLowerCase(); const y = b.toLowerCase(); return x < y ? -1 : (x > y ? 1 : 0); });",
+                  "const signature = CryptoJS.HmacSHA256(pairs.join('|'), key).toString(CryptoJS.enc.Hex);",
+                  "Object.keys(params).forEach((k) => pm.variables.set('sim_' + k, params[k]));",
+                  "pm.variables.set('sim_signature', signature);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Webhook answered 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simulate: forged signature (expect 403)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{api_url}}/webhooks/billplz",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "webhooks",
+                "billplz"
+              ]
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "id",
+                  "value": "{{sim_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "collection_id",
+                  "value": "{{sim_collection_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "paid",
+                  "value": "{{sim_paid}}",
+                  "type": "text"
+                },
+                {
+                  "key": "state",
+                  "value": "{{sim_state}}",
+                  "type": "text"
+                },
+                {
+                  "key": "amount",
+                  "value": "{{sim_amount}}",
+                  "type": "text"
+                },
+                {
+                  "key": "paid_amount",
+                  "value": "{{sim_paid_amount}}",
+                  "type": "text"
+                },
+                {
+                  "key": "x_signature",
+                  "value": "{{sim_signature}}",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const key = pm.collectionVariables.get('billplz_x_signature_key');",
+                  "if (!key) { throw new Error('Set the collection variable billplz_x_signature_key first.'); }",
+                  "const params = {",
+                  "  id: pm.collectionVariables.get('billplz_bill_id'),",
+                  "  collection_id: 'sandbox-collection',",
+                  "  paid: 'true',",
+                  "  state: 'paid',",
+                  "  amount: String(pm.collectionVariables.get('billplz_amount_sen')),",
+                  "  paid_amount: String(pm.collectionVariables.get('billplz_amount_sen')),",
+                  "};",
+                  "const pairs = Object.keys(params).map((k) => k + params[k]);",
+                  "pairs.sort((a, b) => { const x = a.toLowerCase(); const y = b.toLowerCase(); return x < y ? -1 : (x > y ? 1 : 0); });",
+                  "const signature = CryptoJS.HmacSHA256(pairs.join('|'), key).toString(CryptoJS.enc.Hex);",
+                  "Object.keys(params).forEach((k) => pm.variables.set('sim_' + k, params[k]));",
+                  "pm.variables.set('sim_signature', 'forged-signature');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Webhook answered 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simulate: wrong amount (stays pending)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{api_url}}/webhooks/billplz",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "webhooks",
+                "billplz"
+              ]
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "id",
+                  "value": "{{sim_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "collection_id",
+                  "value": "{{sim_collection_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "paid",
+                  "value": "{{sim_paid}}",
+                  "type": "text"
+                },
+                {
+                  "key": "state",
+                  "value": "{{sim_state}}",
+                  "type": "text"
+                },
+                {
+                  "key": "amount",
+                  "value": "{{sim_amount}}",
+                  "type": "text"
+                },
+                {
+                  "key": "paid_amount",
+                  "value": "{{sim_paid_amount}}",
+                  "type": "text"
+                },
+                {
+                  "key": "x_signature",
+                  "value": "{{sim_signature}}",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const key = pm.collectionVariables.get('billplz_x_signature_key');",
+                  "if (!key) { throw new Error('Set the collection variable billplz_x_signature_key first.'); }",
+                  "const params = {",
+                  "  id: pm.collectionVariables.get('billplz_bill_id'),",
+                  "  collection_id: 'sandbox-collection',",
+                  "  paid: 'true',",
+                  "  state: 'paid',",
+                  "  amount: String(pm.collectionVariables.get('billplz_amount_sen')),",
+                  "  paid_amount: '100',",
+                  "};",
+                  "const pairs = Object.keys(params).map((k) => k + params[k]);",
+                  "pairs.sort((a, b) => { const x = a.toLowerCase(); const y = b.toLowerCase(); return x < y ? -1 : (x > y ? 1 : 0); });",
+                  "const signature = CryptoJS.HmacSHA256(pairs.join('|'), key).toString(CryptoJS.enc.Hex);",
+                  "Object.keys(params).forEach((k) => pm.variables.set('sim_' + k, params[k]));",
+                  "pm.variables.set('sim_signature', signature);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Webhook answered 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simulate: not paid (stays pending)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{api_url}}/webhooks/billplz",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "webhooks",
+                "billplz"
+              ]
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "id",
+                  "value": "{{sim_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "collection_id",
+                  "value": "{{sim_collection_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "paid",
+                  "value": "{{sim_paid}}",
+                  "type": "text"
+                },
+                {
+                  "key": "state",
+                  "value": "{{sim_state}}",
+                  "type": "text"
+                },
+                {
+                  "key": "amount",
+                  "value": "{{sim_amount}}",
+                  "type": "text"
+                },
+                {
+                  "key": "paid_amount",
+                  "value": "{{sim_paid_amount}}",
+                  "type": "text"
+                },
+                {
+                  "key": "x_signature",
+                  "value": "{{sim_signature}}",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const key = pm.collectionVariables.get('billplz_x_signature_key');",
+                  "if (!key) { throw new Error('Set the collection variable billplz_x_signature_key first.'); }",
+                  "const params = {",
+                  "  id: pm.collectionVariables.get('billplz_bill_id'),",
+                  "  collection_id: 'sandbox-collection',",
+                  "  paid: 'false',",
+                  "  state: 'due',",
+                  "  amount: String(pm.collectionVariables.get('billplz_amount_sen')),",
+                  "  paid_amount: '0',",
+                  "};",
+                  "const pairs = Object.keys(params).map((k) => k + params[k]);",
+                  "pairs.sort((a, b) => { const x = a.toLowerCase(); const y = b.toLowerCase(); return x < y ? -1 : (x > y ? 1 : 0); });",
+                  "const signature = CryptoJS.HmacSHA256(pairs.join('|'), key).toString(CryptoJS.enc.Hex);",
+                  "Object.keys(params).forEach((k) => pm.variables.set('sim_' + k, params[k]));",
+                  "pm.variables.set('sim_signature', signature);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Webhook answered 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "noauth"
+      },
+      "description": "Billplz cannot reach localhost, so these requests send the callback for you. They need billplz_x_signature_key and billplz_bill_id."
+    }
+  ]
+}
