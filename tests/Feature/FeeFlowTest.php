@@ -205,4 +205,15 @@ class FeeFlowTest extends TestCase
         // The failed validation sent nothing, the rejection sent one, resubmitting sends none
         Notification::assertSentToTimes($this->resident, PaymentReviewed::class, 1);
     }
+
+    public function test_invoice_detail_includes_its_payments(): void
+    {
+        Sanctum::actingAs($this->resident);
+        $this->submitProof($this->ownInvoice)->assertCreated();
+
+        $this->getJson("/api/v1/invoices/{$this->ownInvoice->id}")
+            ->assertOk()
+            ->assertJsonCount(1, 'data.payments')
+            ->assertJsonPath('data.payments.0.status', 'pending');
+    }
 }

@@ -30,6 +30,6 @@ class InvoiceController extends Controller
     {
         Gate::authorize('view', $invoice);
 
-        return new InvoiceResource($invoice->load('unit.unitType'));
+        return new InvoiceResource($invoice->load(['unit.unitType', 'payments' => fn ($q) => $q->latest()]));
     }
 }
